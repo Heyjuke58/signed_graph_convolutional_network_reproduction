@@ -1,0 +1,2 @@
+# signed_graph_convolutional_network_reproduction
+Reproduction of paper Signed Graph Convolutional Network
