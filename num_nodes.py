@@ -1,4 +1,4 @@
-with open("soc-sign-bitcoinalpha.csv") as file:
+with open("./data/soc-sign-bitcoinalpha.csv") as file:
     input = file.read()
 
 links = input.splitlines()
