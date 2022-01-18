@@ -2,3 +2,4 @@ bitcoin-otc: https://snap.stanford.edu/data/soc-sign-bitcoin-otc.html
 bitcoin-alpha: https://snap.stanford.edu/data/soc-sign-bitcoin-alpha.html
 slashdot: http://snap.stanford.edu/data/soc-sign-Slashdot090221.html
 epinions: https://snap.stanford.edu/data/soc-Epinions1.html
+slashdot-zoo: http://konect.cc/networks/slashdot-zoo/
