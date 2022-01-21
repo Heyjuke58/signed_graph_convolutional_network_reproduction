@@ -14,7 +14,7 @@ def test_embedding(
     test_neg_ei: LongTensor,
 ) -> Tuple[float, float]:
     embedding = embedding[:, :embedding_size]
-    model = LogisticRegression(class_weight="balanced", max_iter=200)
+    model = LogisticRegression(class_weight="balanced", max_iter=400)
     # inner cat combines embs of edges into one feature vector.
     # outer cat combines positive and negative edges:
     embedding = embedding.detach().numpy()

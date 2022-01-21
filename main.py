@@ -4,6 +4,7 @@ from src.train_sgcn import SGCNTrainer
 from src.train_sse import SSETrainer
 from src.test_embedding import test_embedding
 from typing import List, Tuple
+from torch import tanh, relu
 
 BITCOIN_ALPHA_THEIRS = ("bitcoinalpha_theirs.csv", ",")
 BITCOIN_OTC_THEIRS = ("bitcoinotc_theirs.csv", ",")
@@ -32,11 +33,10 @@ num_layers = 2
 lamb = 5
 embedding_size = 64
 epochs = 200
-xent_weights = [0.15, 0.8, 0.05]
-learning_rate = 0.5
-weight_decay = 0.01
+xent_weights = [1, 1, 1]  # originally [0.15, 0.8, 0.05]
+learning_rate = 0.01  # originally 0.5 (with sgd optimizer and scheduler)
+weight_decay = 1e-5  # originally 0.01
 learn_decay = 0.75
-# xent_weights = [1, 1, 1]
 
 
 def main(undirected: bool, datasets: List[Tuple[str, str]]):
@@ -61,6 +61,7 @@ def main(undirected: bool, datasets: List[Tuple[str, str]]):
             test_pos_ei = test_pos_ei.T
             test_neg_ei = test_neg_ei.T
 
+        activation_fn = tanh
         for lamb in [0, 3, 5, 7, 10]:
             sgcn_trainer = SGCNTrainer(
                 train_pos_ei,
@@ -76,6 +77,7 @@ def main(undirected: bool, datasets: List[Tuple[str, str]]):
                 learning_rate=learning_rate,
                 weight_decay=weight_decay,
                 learn_decay=learn_decay,
+                activation_fn=activation_fn,
             )
 
             # train sgcn
@@ -87,23 +89,23 @@ def main(undirected: bool, datasets: List[Tuple[str, str]]):
                 embedding, embedding_size, train_pos_ei, train_neg_ei, test_pos_ei, test_neg_ei
             )
 
-            print("auc, f1: ", auc, f1)
+            print(f"λ: {lamb}, σ: {activation_fn.__name__}, auc: {auc:.3f}, f1: {f1:.3f} ")
 
-        # sse_trainer = SSETrainer(
-        #     train_pos_ei,
-        #     train_neg_ei,
-        #     test_pos_ei,
-        #     test_neg_ei,
-        #     num_nodes,
-        #     embedding_size,
-        # )
+        sse_trainer = SSETrainer(
+            train_pos_ei,
+            train_neg_ei,
+            test_pos_ei,
+            test_neg_ei,
+            num_nodes,
+            embedding_size,
+        )
 
-        # embedding = sse_trainer.train()
-        # auc, f1 = test_embedding(
-        #     embedding, embedding_size, train_pos_ei, train_neg_ei, test_pos_ei, test_neg_ei
-        # )
+        embedding = sse_trainer.train()
+        auc, f1 = test_embedding(
+            embedding, embedding_size, train_pos_ei, train_neg_ei, test_pos_ei, test_neg_ei
+        )
 
-        # print(f"SSE auc: {auc}, f1: {f1} ")
+        print(f"SSE auc: {auc}, f1: {f1} ")
 
 
 if __name__ == "__main__":

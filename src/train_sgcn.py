@@ -2,7 +2,7 @@ from torch_geometric.nn import SignedGCN
 import copy
 import torch
 import matplotlib.pyplot as plt
-from typing import List, Tuple
+from typing import List, Tuple, Callable
 from torch.optim import Adam
 from src.our_signed_gcn import OurSignedGCN
 
@@ -24,6 +24,7 @@ class SGCNTrainer:
         weight_decay: float = 1e-5,
         learn_decay: float = 0.75,
         xent_weights: List[float] = [0.15, 0.8, 0.05],
+        activation_fn: Callable = torch.relu,
     ) -> None:
         """
         The edge indices should all be undirected???
@@ -35,18 +36,23 @@ class SGCNTrainer:
         self.num_nodes = num_nodes
 
         self.sgcn = OurSignedGCN(
-            in_features, out_features, num_layers, lamb, xent_weights=xent_weights
+            in_features,
+            out_features,
+            num_layers,
+            lamb,
+            xent_weights=xent_weights,
+            activation_fn=activation_fn,
         )
-        # self.optimizer = Adam(self.sgcn.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        self.optimizer = Adam(self.sgcn.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
-        self.optimizer = torch.optim.SGD(
-            filter(lambda p: p.requires_grad, self.sgcn.parameters()),
-            lr=learning_rate,
-            weight_decay=weight_decay,
-        )
-        self.scheduler = torch.optim.lr_scheduler.StepLR(
-            self.optimizer, step_size=100, gamma=learn_decay
-        )
+        # self.optimizer = torch.optim.SGD(
+        #     filter(lambda p: p.requires_grad, self.sgcn.parameters()),
+        #     lr=learning_rate,
+        #     weight_decay=weight_decay,
+        # )
+        # self.scheduler = torch.optim.lr_scheduler.StepLR(
+        #     self.optimizer, step_size=100, gamma=learn_decay
+        # )
 
         # only use training edges for initial SSE
         self.X = self.sgcn.create_spectral_features(
@@ -74,10 +80,14 @@ class SGCNTrainer:
         for epoch in range(epochs):  # epochs
             # train model
             self.optimizer.zero_grad()
-            loss = self.sgcn.loss(self.X, self.train_pos_edge_index, self.train_neg_edge_index)
+            loss = self.sgcn.loss(
+                self.sgcn(self.X, self.train_pos_edge_index, self.train_neg_edge_index),
+                self.train_pos_edge_index,
+                self.train_neg_edge_index,
+            )
             loss.backward()
             self.optimizer.step()
-            self.scheduler.step()
+            # self.scheduler.step()
             train_losses.append(loss.item())
 
             # test model
