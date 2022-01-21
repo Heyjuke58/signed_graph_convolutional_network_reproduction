@@ -1,8 +1,8 @@
-from torch_geometric.nn import SignedGCN
+from torch_geometric.nn import SignedGCN, SignedConv
 import torch.nn.functional as F
 import torch
 from torch_geometric.utils import negative_sampling
-from typing import Callable
+from typing import Callable, Optional
 
 
 class OurSignedGCN(SignedGCN):
@@ -15,10 +15,19 @@ class OurSignedGCN(SignedGCN):
         bias=True,
         xent_weights=[0.15, 0.8, 0.05],
         activation_fn: Callable = torch.relu,
+        ablation_version: str = "sgcn2",  # can be 'sgcn1', 'sgcn1p' or, 'sgcn2'
     ):
         super().__init__(in_channels, hidden_channels, num_layers, lamb, bias)
+        assert ablation_version in ["sgcn2", "sgcn1", "sgcn1p"]
         self.xent_weights = xent_weights
         self.activation_fn = activation_fn
+        if ablation_version == "sgcn1":
+            assert num_layers == 1, "SGCN-1 must have exactly 1 layer"
+            self.convs = torch.nn.ModuleList()
+        elif ablation_version == "sgcn1p":
+            assert num_layers == 2, "SGCN-1+ must have exactly 2 layers"
+            self.convs = torch.nn.ModuleList()
+            self.convs.append(SignedConv(in_channels, hidden_channels // 2, first_aggr=True))
 
     def forward(self, x, pos_edge_index, neg_edge_index):
         """Computes node embeddings :obj:`z` based on positive edges

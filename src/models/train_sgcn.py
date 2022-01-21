@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 from typing import List, Tuple, Callable
 from torch.optim import Adam
 from src.our_signed_gcn import OurSignedGCN
+from src.models import Trainer
 
 
-class SGCNTrainer:
+class SGCNTrainer(Trainer):
     def __init__(
         self,
         # src_dataset,
@@ -16,24 +17,31 @@ class SGCNTrainer:
         test_pos_edge_index: torch.LongTensor,
         test_neg_edge_index: torch.LongTensor,
         num_nodes: int,
+        # embedding_size_true: int,  # TODO maybe
+        # embedding_size_used: int,
         in_features: int,
         out_features: int,
         num_layers: int,
         lamb: float,
+        epochs: int,
         learning_rate: float = 0.01,
         weight_decay: float = 1e-5,
         learn_decay: float = 0.75,
         xent_weights: List[float] = [0.15, 0.8, 0.05],
         activation_fn: Callable = torch.relu,
+        ablation_version: str = "sgcn2",
     ) -> None:
         """
         The edge indices should all be undirected???
         """
-        self.train_pos_edge_index = train_pos_edge_index
-        self.train_neg_edge_index = train_neg_edge_index
-        self.test_pos_edge_index = test_pos_edge_index
-        self.test_neg_edge_index = test_neg_edge_index
-        self.num_nodes = num_nodes
+
+        super().__init__(
+            train_pos_edge_index,
+            train_neg_edge_index,
+            test_pos_edge_index,
+            test_neg_edge_index,
+            num_nodes,
+        )
 
         self.sgcn = OurSignedGCN(
             in_features,
@@ -42,8 +50,10 @@ class SGCNTrainer:
             lamb,
             xent_weights=xent_weights,
             activation_fn=activation_fn,
+            ablation_version=ablation_version,
         )
         self.optimizer = Adam(self.sgcn.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        self.epochs = epochs
 
         # self.optimizer = torch.optim.SGD(
         #     filter(lambda p: p.requires_grad, self.sgcn.parameters()),
@@ -62,9 +72,6 @@ class SGCNTrainer:
     def train(
         self,
         # optimizer: torch.optim.Optimizer,
-        epochs: int,
-        early_stopping_patience: int,
-        early_stopping: bool = False,
         verbose: bool = False,
         plot: bool = False,
     ) -> Tuple[torch.nn.Module, List[int], List[int]]:
@@ -77,7 +84,7 @@ class SGCNTrainer:
         test_auc = []
         test_f1 = []
 
-        for epoch in range(epochs):  # epochs
+        for epoch in range(self.epochs):  # epochs
             # train model
             self.optimizer.zero_grad()
             loss = self.sgcn.loss(
@@ -124,16 +131,4 @@ class SGCNTrainer:
             plt.ylabel("Loss")
             plt.show()
 
-    # TODO: maybe
-    def custom_loss(self, z, M_pos, M_neg):
-        raise NotImplementedError
-
-
-def main():
-    pass
-    # sgcn_trainer = SGCNTrainer(MY_GRAPH, 3, 3, 2, 5)
-    # sgcn_trainer.train(epochs=2, early_stopping_patience=0)
-
-
-if __name__ == "__main__":
-    main()
+        return self.sgcn(self.X, self.train_pos_edge_index, self.train_neg_edge_index)
