@@ -1,0 +1,51 @@
+algorithm,dataset,auc,f1
+sgcn2,soc-sign-bitcoinalpha.csv,0.7748481163019473,0.926035471618647
+sgcn1,soc-sign-bitcoinalpha.csv,0.7992583709676048,0.9213059901635964
+sgcn1p,soc-sign-bitcoinalpha.csv,0.7816081102918039,0.9239184715296737
+sgcn2,soc-sign-bitcoinotc.csv,0.8163594878554526,0.9219615605284441
+sgcn1,soc-sign-bitcoinotc.csv,0.8163413181103906,0.918330385537225
+sgcn1p,soc-sign-bitcoinotc.csv,0.8149554621006648,0.9201102369033007
+
+General hyperparameters:
+	test split size: 0.2
+	embedding size: 64
+	undirected graph: False
+	repeats: 3
+	split seed: 1337
+
+sgcn2:
+	in_features: 64
+	out_features: 64
+	num_layers: 2
+	lamb: 5
+	epochs: 200
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn2
+	activation_fn: <built-in method tanh of type object at 0x7fdcd1277ee0>
+sgcn1:
+	in_features: 64
+	out_features: 64
+	num_layers: 1
+	lamb: 5
+	epochs: 200
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn1
+	activation_fn: <built-in method tanh of type object at 0x7fdcd1277ee0>
+sgcn1p:
+	in_features: 64
+	out_features: 64
+	num_layers: 2
+	lamb: 5
+	epochs: 200
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn1p
+	activation_fn: <built-in method tanh of type object at 0x7fdcd1277ee0>

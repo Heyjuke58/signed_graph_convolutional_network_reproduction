@@ -1,0 +1,64 @@
+algorithm,dataset,auc,f1
+sse,soc-sign-bitcoinalpha.csv,0.7224198198657924,0.7897435897435898
+sgcn2,soc-sign-bitcoinalpha.csv,0.7755526071832556,0.937108190091001
+sgcn1,soc-sign-bitcoinalpha.csv,0.7846477687342128,0.9091288907457697
+sgcn1p,soc-sign-bitcoinalpha.csv,0.7708306755458032,0.9362992922143579
+sse,soc-sign-bitcoinotc.csv,0.7160564385317524,0.7675711016672114
+sgcn2,soc-sign-bitcoinotc.csv,0.8058975688881106,0.9171883892999432
+sgcn1,soc-sign-bitcoinotc.csv,0.8010445951615621,0.9005508843142939
+sgcn1p,soc-sign-bitcoinotc.csv,0.8068572617863832,0.9182658137882018
+sse,soc-sign-epinions.txt,0.7297204545385694,0.7833767910378039
+sgcn2,soc-sign-epinions.txt,0.8323439978383864,0.8994677545727178
+sgcn1,soc-sign-epinions.txt,0.8142624469538723,0.882837347771488
+sgcn1p,soc-sign-epinions.txt,0.8309565207116287,0.8986059084765399
+sse,soc-sign-Slashdot090221.txt,0.6625651500484376,0.6728517594607505
+sgcn2,soc-sign-Slashdot090221.txt,0.746544178796444,0.804587518634413
+sgcn1,soc-sign-Slashdot090221.txt,0.7203819412796836,0.7828522478993619
+sgcn1p,soc-sign-Slashdot090221.txt,0.7471097926706811,0.8056011533465607
+
+General hyperparameters:
+	test split size: 0.2
+	embedding size: 64
+	undirected graph: True
+	repeats: 1
+	seed: 1337
+
+sgcn2:
+	in_features: 64
+	out_features: 64
+	num_layers: 2
+	lamb: 5
+	epochs: 200
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn2
+	activation_fn: <built-in method tanh of type object at 0x7f601d73bee0>
+sgcn1:
+	in_features: 64
+	out_features: 64
+	num_layers: 1
+	lamb: 5
+	epochs: 200
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn1
+	activation_fn: <built-in method tanh of type object at 0x7f601d73bee0>
+sgcn1p:
+	in_features: 64
+	out_features: 64
+	num_layers: 2
+	lamb: 5
+	epochs: 200
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn1p
+	activation_fn: <built-in method tanh of type object at 0x7f601d73bee0>
+sse:
+	embedding_size_true: 128
+	embedding_size_used: 64

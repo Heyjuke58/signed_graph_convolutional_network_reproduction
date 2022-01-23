@@ -1,0 +1,61 @@
+algorithm,dataset,auc,f1,avg_runtime
+sgcn2,soc-sign-bitcoinalpha.csv,0.7685071313755008,0.9112819447330147,8.480077108000842
+
+General hyperparameters:
+	test split size: 0.2
+	embedding size: 64
+	undirected graph: True
+	repeats: 1
+	seed: 1337
+
+sgcn2:
+	in_features: 64
+	out_features: 64
+	num_layers: 2
+	lamb: 5
+	num_epochs: 20
+	num_batches: None
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn2
+	activation_fn: <built-in method tanh of type object at 0x7f01610d5ee0>
+	val_interval: 5
+	early_stopping_patience: 5
+	loss_version: torch-geometric
+sgcn1:
+	in_features: 64
+	out_features: 64
+	num_layers: 1
+	lamb: 5
+	num_epochs: 20
+	num_batches: None
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn1
+	activation_fn: <built-in method tanh of type object at 0x7f01610d5ee0>
+	val_interval: 5
+	early_stopping_patience: 5
+	loss_version: torch-geometric
+sgcn1p:
+	in_features: 64
+	out_features: 64
+	num_layers: 2
+	lamb: 5
+	num_epochs: 20
+	num_batches: None
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn1p
+	activation_fn: <built-in method tanh of type object at 0x7f01610d5ee0>
+	val_interval: 5
+	early_stopping_patience: 5
+	loss_version: torch-geometric
+sse:
+	embedding_size_true: 128
+	embedding_size_used: 64

@@ -8,6 +8,8 @@ class SSETrainer(Trainer):
         self,
         train_pos_edge_index: LongTensor,
         train_neg_edge_index: LongTensor,
+        val_pos_edge_index: LongTensor,
+        val_neg_edge_index: LongTensor,
         test_pos_edge_index: LongTensor,
         test_neg_edge_index: LongTensor,
         num_nodes: int,
@@ -20,6 +22,8 @@ class SSETrainer(Trainer):
         super().__init__(
             train_pos_edge_index,
             train_neg_edge_index,
+            val_pos_edge_index,
+            val_neg_edge_index,
             test_pos_edge_index,
             test_neg_edge_index,
             num_nodes,
@@ -36,3 +40,6 @@ class SSETrainer(Trainer):
 
     def train(self, verbose: bool, plot: bool):
         return self.X[:, : self.embedding_size_used]
+
+    def get_num_parameters(self) -> int:
+        return 0
