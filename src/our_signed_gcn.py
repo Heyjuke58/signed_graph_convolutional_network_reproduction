@@ -6,6 +6,8 @@ from typing import Callable, Optional, Dict, List, Set
 from random import randint
 from torch import Tensor
 
+DEV = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 
 class OurSignedGCN(SignedGCN):
     def __init__(
@@ -22,7 +24,7 @@ class OurSignedGCN(SignedGCN):
         super().__init__(in_channels, hidden_channels, num_layers, lamb, bias)
         assert ablation_version in ["sgcn2", "sgcn1", "sgcn1p"]
         self.xent_weights = xent_weights
-        self.loss_fn = torch.nn.CrossEntropyLoss(weight=torch.FloatTensor(self.xent_weights))
+        self.loss_fn = torch.nn.CrossEntropyLoss(weight=torch.tensor(self.xent_weights, device=DEV))
         self.activation_fn = activation_fn
         self.distance_fn = torch.nn.PairwiseDistance(p=2)
         if ablation_version == "sgcn1":
@@ -32,6 +34,10 @@ class OurSignedGCN(SignedGCN):
             assert num_layers == 2, "SGCN-1+ must have exactly 2 layers"
             self.convs = torch.nn.ModuleList()
             self.convs.append(SignedConv(hidden_channels, hidden_channels // 2, first_aggr=True))
+
+        self.conv1.to(DEV)
+        self.convs.to(DEV)
+        self.lin.to(DEV)
 
     def forward(self, x, pos_edge_index, neg_edge_index):
         """Computes node embeddings :obj:`z` based on positive edges
@@ -161,7 +167,7 @@ class OurSignedGCN(SignedGCN):
 
         final_embedding = self.forward(embedding, pos_edge_index, neg_edge_index)
 
-        ys = torch.LongTensor(ys)
+        ys = torch.LongTensor(ys).to(DEV)
 
         # now that we have the mapped indices and final embeddings we can get the loss
         avg_loss = self.loss_fn(
@@ -173,7 +179,7 @@ class OurSignedGCN(SignedGCN):
 
         avg_loss2 = torch.mean(
             torch.max(
-                torch.zeros(len(i_loss2)),
+                torch.zeros(len(i_loss2)).to(DEV),
                 self.distance_fn(final_embedding[i_loss2], final_embedding[pos_no_loss2]) ** 2
                 - self.distance_fn(final_embedding[i_loss2], final_embedding[no_neg_loss2]) ** 2,
             )

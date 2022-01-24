@@ -10,6 +10,8 @@ from src.our_signed_gcn import OurSignedGCN
 from src.models import Trainer
 import numpy as np
 
+DEV = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 
 class SGCNTrainer(Trainer):
     def __init__(
@@ -56,7 +58,7 @@ class SGCNTrainer(Trainer):
             xent_weights=xent_weights,
             activation_fn=activation_fn,
             ablation_version=ablation_version,
-        )
+        ).to(DEV)
 
         self.val_interval = val_interval
         self.early_stopping_patience = early_stopping_patience
@@ -94,12 +96,12 @@ class SGCNTrainer(Trainer):
         # only use training edges for initial SSE
         self.X = self.sgcn.create_spectral_features(
             self.train_pos_edge_index, self.train_neg_edge_index, self.num_nodes
-        )
+        ).to(DEV)
 
     @staticmethod
     def get_adj_list(edge_index) -> Dict[int, set]:
         adj_list = defaultdict(set)
-        for edge in edge_index.T:
+        for edge in edge_index.T.cpu():
             x = edge[0].item()
             y = edge[1].item()
             adj_list[x].add(y)
@@ -109,7 +111,7 @@ class SGCNTrainer(Trainer):
     def train(self, plot: bool = False) -> Tensor:
 
         epochs_since_improvement = 0
-        best_embedding: Tensor = torch.zeros((1,))
+        best_embedding: Optional[Tensor] = None
         best_score = 0
 
         train_losses = []

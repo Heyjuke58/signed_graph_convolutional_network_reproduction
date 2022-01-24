@@ -2,6 +2,8 @@ from pathlib import Path
 from typing import List, Tuple, Type, Dict, Any
 import time
 import numpy as np
+import torch
+from torch import Tensor, LongTensor
 
 from sklearn.model_selection import train_test_split
 from torch import relu, tanh
@@ -12,13 +14,8 @@ from src.models.train_sgcn import SGCNTrainer
 from src.models.train_sse import SSETrainer
 from src.test_embedding import test_embedding
 
-# BITCOIN_ALPHA_THEIRS = ("bitcoinalpha_theirs.csv", ",")
-# BITCOIN_OTC_THEIRS = ("bitcoinotc_theirs.csv", ",")
-# BITCOIN_ALPHA = ("soc-sign-bitcoinalpha.csv", ",")
-# BITCOIN_OTC = ("soc-sign-bitcoinotc.csv", ",")
-# SLASHDOT = ("soc-sign-Slashdot090221.txt", "\t")
-# EPINIONS = ("soc-sign-epinions.txt", "\t")
-# SLASHDOT_ALTERNATIVE = ("slashdot_zoo.matrix", " ")
+DEV = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+print(DEV)
 
 BITCOIN_ALPHA = {"file": "soc-sign-bitcoinalpha.csv", "split_symbol": ",", "target_num_nodes": None}
 BITCOIN_OTC = {"file": "soc-sign-bitcoinotc.csv", "split_symbol": ",", "target_num_nodes": None}
@@ -139,19 +136,19 @@ def main(
             train_neg_ei, test_size=val_size / (1 - test_size), random_state=seed, shuffle=True
         )
         if undirected:
-            train_pos_ei = make_undirected(train_pos_ei.T)
-            train_neg_ei = make_undirected(train_neg_ei.T)
-            val_pos_ei = make_undirected(val_pos_ei.T)
-            val_neg_ei = make_undirected(val_neg_ei.T)
-            test_pos_ei = make_undirected(test_pos_ei.T)
-            test_neg_ei = make_undirected(test_neg_ei.T)
+            train_pos_ei = make_undirected(train_pos_ei.T).to(DEV)
+            train_neg_ei = make_undirected(train_neg_ei.T).to(DEV)
+            val_pos_ei = make_undirected(val_pos_ei.T).to(DEV)
+            val_neg_ei = make_undirected(val_neg_ei.T).to(DEV)
+            test_pos_ei = make_undirected(test_pos_ei.T).to(DEV)
+            test_neg_ei = make_undirected(test_neg_ei.T).to(DEV)
         else:
-            train_pos_ei = train_pos_ei.T
-            train_neg_ei = train_neg_ei.T
-            val_pos_ei = val_pos_ei.T
-            val_neg_ei = val_neg_ei.T
-            test_pos_ei = test_pos_ei.T
-            test_neg_ei = test_neg_ei.T
+            train_pos_ei = train_pos_ei.T.to(DEV)
+            train_neg_ei = train_neg_ei.T.to(DEV)
+            val_pos_ei = val_pos_ei.T.to(DEV)
+            val_neg_ei = val_neg_ei.T.to(DEV)
+            test_pos_ei = test_pos_ei.T.to(DEV)
+            test_neg_ei = test_neg_ei.T.to(DEV)
 
         for train_class, algorithm in algorithms:
             aucs, f1s, runtimes = [], [], []
@@ -220,13 +217,13 @@ if __name__ == "__main__":
         embedding_size=EMBEDDING_SIZE,
         # datasets=[BITCOIN_ALPHA, BITCOIN_OTC, EPINIONS, SLASHDOT],
         datasets=[BITCOIN_ALPHA],
-        # algorithms=[
-        #     (SSETrainer, "sse"),
-        #     (SGCNTrainer, "sgcn2"),
-        #     (SGCNTrainer, "sgcn1"),
-        #     (SGCNTrainer, "sgcn1p"),
-        # ],
         algorithms=[
+            (SSETrainer, "sse"),
             (SGCNTrainer, "sgcn2"),
+            (SGCNTrainer, "sgcn1"),
+            (SGCNTrainer, "sgcn1p"),
         ],
+        # algorithms=[
+        #     (SGCNTrainer, "sgcn2"),
+        # ],
     )

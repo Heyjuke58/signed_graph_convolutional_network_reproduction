@@ -22,7 +22,7 @@ class Trainer(ABC):
         self.num_nodes = num_nodes
 
     @abstractmethod
-    def train(self, verbose: bool, plot: bool) -> Tensor:
+    def train(self, plot: bool) -> Tensor:
         """
         train the model, return the learned embedding
         """

@@ -17,7 +17,11 @@ def test_embedding(
     model = LogisticRegression(class_weight="balanced", max_iter=400)
     # inner cat combines embs of edges into one feature vector.
     # outer cat combines positive and negative edges:
-    embedding = embedding.detach().numpy()
+    embedding = embedding.detach().cpu().numpy()
+    train_pos_ei = train_pos_ei.detach().cpu().numpy()
+    train_neg_ei = train_neg_ei.detach().cpu().numpy()
+    test_pos_ei = test_pos_ei.detach().cpu().numpy()
+    test_neg_ei = test_neg_ei.detach().cpu().numpy()
     X_train = np.concatenate(
         (
             np.concatenate(
