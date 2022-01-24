@@ -1,0 +1,26 @@
+algorithm,dataset,auc,f1,avg_runtime
+sgcn2,soc-sign-bitcoinalpha.csv,0.7781168405922825,0.9333604225924421,47.072443545999704
+
+General hyperparameters:
+	test split size: 0.2
+	embedding size: 64
+	undirected graph: True
+	repeats: 1
+	seed: 1337
+
+sgcn2:
+	in_features: 64
+	out_features: 64
+	num_layers: 2
+	lamb: 5
+	num_epochs: 200
+	num_batches: None
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	learn_decay: 0.75
+	ablation_version: sgcn2
+	activation_fn: <built-in method tanh of type object at 0x7fa32158eee0>
+	val_interval: 5
+	early_stopping_patience: 50
+	loss_version: torch-geometric

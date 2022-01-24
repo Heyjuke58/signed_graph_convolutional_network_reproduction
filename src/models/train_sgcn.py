@@ -69,13 +69,16 @@ class SGCNTrainer(Trainer):
             assert batch_size is not None
             assert num_batches is not None
             assert num_epochs is None
-            self.optimizer = torch.optim.SGD(
-                filter(lambda p: p.requires_grad, self.sgcn.parameters()),
-                lr=learning_rate,
-                weight_decay=weight_decay,
-            )
-            self.scheduler = torch.optim.lr_scheduler.StepLR(
-                self.optimizer, step_size=100, gamma=learn_decay
+            # self.optimizer = torch.optim.SGD(
+            #     filter(lambda p: p.requires_grad, self.sgcn.parameters()),
+            #     lr=learning_rate,
+            #     weight_decay=weight_decay,
+            # )
+            # self.scheduler = torch.optim.lr_scheduler.StepLR(
+            #     self.optimizer, step_size=100, gamma=learn_decay
+            # )
+            self.optimizer = Adam(
+                self.sgcn.parameters(), lr=learning_rate, weight_decay=weight_decay
             )
             self.num_batches = num_batches
             self.batch_size = batch_size
@@ -160,7 +163,7 @@ class SGCNTrainer(Trainer):
                     )
                     loss.backward()
                     self.optimizer.step()
-                    self.scheduler.step()
+                    # self.scheduler.step()
                     epoch_train_losses.append(loss.item())
                     done_batches += 1
                 epoch += 1

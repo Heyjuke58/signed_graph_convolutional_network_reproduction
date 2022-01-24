@@ -17,10 +17,13 @@ from src.test_embedding import test_embedding
 DEV = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 print(DEV)
 
+### Datasets
+
 BITCOIN_ALPHA = {"file": "soc-sign-bitcoinalpha.csv", "split_symbol": ",", "target_num_nodes": None}
 BITCOIN_OTC = {"file": "soc-sign-bitcoinotc.csv", "split_symbol": ",", "target_num_nodes": None}
 SLASHDOT = {"file": "soc-sign-Slashdot090221.txt", "split_symbol": "\t", "target_num_nodes": 33586}
 EPINIONS = {"file": "soc-sign-epinions.txt", "split_symbol": "\t", "target_num_nodes": 16992}
+# MY_GRAPH = {"file": "mygraph.csv", "split_symbol": ",", "target_num_nodes": None}
 
 ALL_FILES = [BITCOIN_ALPHA, BITCOIN_OTC, SLASHDOT, EPINIONS]
 ALL_FILES_REALLY = [
@@ -32,13 +35,7 @@ ALL_FILES_REALLY = [
     EPINIONS,
 ]
 
-# TESTED_DATASET = BITCOIN_OTC
-SEED = 1337
-TEST_SIZE = 0.2
-VAL_SIZE = 0.1
-EMBEDDING_SIZE = 64  # how much is used when testing the embedding
-UNDIRECTED = True
-REPEATS = 3
+### Algorithms
 
 ALGORITHMS = [
     (SGCNTrainer, "sgcn2"),
@@ -47,44 +44,54 @@ ALGORITHMS = [
     (SSETrainer, "sse"),
 ]
 
+### Global Hyperparameters
+
+SEED = 1337
+TEST_SIZE = 0.2
+VAL_SIZE = 0.1
+EMBEDDING_SIZE = 64  # how much is used when testing the embedding
+UNDIRECTED = False
+REPEATS = 3
+
+### Algorithm specific hyperparameters
+
 sgcn2_hyperpars_torch = {
     "in_features": 64,
     "out_features": 64,
     "num_layers": 2,
     "lamb": 5,
-    "num_epochs": None,
-    "num_batches": 200,
+    "num_epochs": 200,
+    "num_batches": None,
     "xent_weights": [1, 1, 1],  # originally [0.15, 0.8, 0.05]
     "learning_rate": 0.01,  # originally 0.5 (with sgd optimizer and scheduler)
     "weight_decay": 1e-5,  # originally 0.01, geometric 1e-5
-    "learn_decay": 0.75,
     "ablation_version": "sgcn2",
     "activation_fn": tanh,
     "val_interval": 5,
     "early_stopping_patience": 50,
     "loss_version": "torch-geometric",
 }
-sgcn2_hyperpars_theirs = {
-    "in_features": 64,
-    "out_features": 64,
-    "num_layers": 2,
-    "lamb": 5,
-    "num_epochs": None,
-    "num_batches": 10000,
-    "batch_size": 1000,
-    "xent_weights": [0.15, 0.8, 0.05],  # originally [0.15, 0.8, 0.05]
-    "learning_rate": 0.5,  # originally 0.5 (with sgd optimizer and scheduler)
-    "weight_decay": 0.01,  # originally 0.01, geometric 1e-5
-    "learn_decay": 0.75,
-    "ablation_version": "sgcn2",
-    "activation_fn": tanh,
-    "val_interval": 5,
-    "early_stopping_patience": 50,
-    "loss_version": "theirs",
-}
-sgcn1_hyperpars = sgcn2_hyperpars_theirs.copy()
+# sgcn2_hyperpars_theirs = {
+#     "in_features": 64,
+#     "out_features": 64,
+#     "num_layers": 2,
+#     "lamb": 3,
+#     "num_epochs": None,
+#     "num_batches": 10000,
+#     "batch_size": 1000,
+#     "xent_weights": [0.15, 0.8, 0.05],  # originally [0.15, 0.8, 0.05]
+#     "learning_rate": 0.01,  # originally 0.5 (with sgd optimizer and scheduler)
+#     "weight_decay": 1e-5,  # originally 0.01, geometric 1e-5
+#     "learn_decay": 0.75,
+#     "ablation_version": "sgcn2",
+#     "activation_fn": tanh,
+#     "val_interval": 5,
+#     "early_stopping_patience": 50,
+#     "loss_version": "theirs",
+# }
+sgcn1_hyperpars = sgcn2_hyperpars_torch.copy()
 sgcn1_hyperpars.update({"num_layers": 1, "ablation_version": "sgcn1"})
-sgcn1p_hyperpars = sgcn2_hyperpars_theirs.copy()
+sgcn1p_hyperpars = sgcn2_hyperpars_torch.copy()
 sgcn1p_hyperpars.update({"ablation_version": "sgcn1p"})
 sse_hyperpars = {
     "embedding_size_true": 128,
@@ -92,7 +99,7 @@ sse_hyperpars = {
 }
 
 hyperpars = {
-    "sgcn2": sgcn2_hyperpars_theirs,
+    "sgcn2": sgcn2_hyperpars_torch,
     "sgcn1": sgcn1_hyperpars,
     "sgcn1p": sgcn1p_hyperpars,
     "sse": sse_hyperpars,
@@ -168,7 +175,7 @@ def main(
 
                 print(f"{algorithm=}")
                 print(f"{trainer.get_num_parameters()=}")
-                embedding = trainer.train(plot=True)
+                embedding = trainer.train(plot=False)
 
                 auc, f1 = test_embedding(
                     embedding, embedding_size, train_pos_ei, train_neg_ei, test_pos_ei, test_neg_ei
@@ -187,13 +194,16 @@ def main(
     with open(Path("runs") / f"res_{get_timestamp()}.csv", "x") as f:
         f.write("algorithm,dataset,auc,f1,avg_runtime\n")
         for key, value in results.items():
-            f.write(f"{key[0]},{key[1]},{value[0]},{value[1]},{value[2]}\n")
+            f.write(
+                f"{key[0]},{key[1]},{round(value[0], 3)},{round(value[1], 3)},{round(value[2], 3)}\n"
+            )
 
         # empty row between csv and hyperparamets
         f.write("\n")
 
         f.write("General hyperparameters:\n")
         f.write(f"\ttest split size: {test_size}\n")
+        f.write(f"\tval split size: {val_size}\n")
         f.write(f"\tembedding size: {embedding_size}\n")
         f.write(f"\tundirected graph: {undirected}\n")
         f.write(f"\trepeats: {repeats}\n")
@@ -215,8 +225,8 @@ if __name__ == "__main__":
         test_size=TEST_SIZE,
         val_size=VAL_SIZE,
         embedding_size=EMBEDDING_SIZE,
-        # datasets=[BITCOIN_ALPHA, BITCOIN_OTC, EPINIONS, SLASHDOT],
-        datasets=[BITCOIN_ALPHA],
+        datasets=[BITCOIN_ALPHA, BITCOIN_OTC, SLASHDOT, EPINIONS],
+        # datasets=[BITCOIN_ALPHA],
         algorithms=[
             (SSETrainer, "sse"),
             (SGCNTrainer, "sgcn2"),
