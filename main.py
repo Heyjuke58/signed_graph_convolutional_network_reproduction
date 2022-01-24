@@ -61,7 +61,7 @@ sgcn2_hyperpars_torch = {
     "ablation_version": "sgcn2",
     "activation_fn": tanh,
     "val_interval": 5,
-    "early_stopping_patience": 15,
+    "early_stopping_patience": 50,
     "loss_version": "torch-geometric",
 }
 sgcn2_hyperpars_theirs = {
@@ -79,7 +79,7 @@ sgcn2_hyperpars_theirs = {
     "ablation_version": "sgcn2",
     "activation_fn": tanh,
     "val_interval": 5,
-    "early_stopping_patience": 15,
+    "early_stopping_patience": 50,
     "loss_version": "theirs",
 }
 sgcn1_hyperpars = sgcn2_hyperpars_theirs.copy()
@@ -209,7 +209,7 @@ def main(
 
 if __name__ == "__main__":
     main(
-        repeats=1,
+        repeats=REPEATS,
         undirected=UNDIRECTED,
         seed=SEED,
         test_size=TEST_SIZE,

@@ -166,16 +166,25 @@ class OurSignedGCN(SignedGCN):
         all_nodes_map = {node: i for i, node in enumerate(all_nodes_list)}
 
         final_embedding = self.forward(embedding, pos_edge_index, neg_edge_index)
+        final_embedding = final_embedding[all_nodes_list]
 
+        i_indices_mapped = [all_nodes_map[i] for i in i_indices]
+        j_indices_mapped = [all_nodes_map[j] for j in j_indices]
         ys = torch.LongTensor(ys).to(DEV)
 
         # now that we have the mapped indices and final embeddings we can get the loss
         avg_loss = self.loss_fn(
             self.lin(
-                torch.cat((final_embedding[i_indices], final_embedding[j_indices]), 1),
+                torch.cat(
+                    (final_embedding[i_indices_mapped], final_embedding[j_indices_mapped]), 1
+                ),
             ),
             ys,
         )
+
+        i_loss2 = [all_nodes_map[i] for i in i_loss2]
+        pos_no_loss2 = [all_nodes_map[i] for i in pos_no_loss2]
+        no_neg_loss2 = [all_nodes_map[i] for i in no_neg_loss2]
 
         avg_loss2 = torch.mean(
             torch.max(
