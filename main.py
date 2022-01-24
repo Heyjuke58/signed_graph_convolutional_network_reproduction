@@ -190,45 +190,48 @@ def main(
                 np.average(f1s),
                 np.average(runtimes),
             )
+            with open(Path("runs_dist") / "res_dist.csv", "a") as f:
+                f.write(f"{algorithm},auc,{','.join(aucs)}\n")
+                f.write(f"{algorithm},f1,{','.join(f1s)}\n")
 
-    with open(Path("runs") / f"res_{get_timestamp()}.csv", "x") as f:
-        f.write("algorithm,dataset,auc,f1,avg_runtime\n")
-        for key, value in results.items():
-            f.write(
-                f"{key[0]},{key[1]},{round(value[0], 3)},{round(value[1], 3)},{round(value[2], 3)}\n"
-            )
+    # with open(Path("runs") / f"res_{get_timestamp()}.csv", "x") as f:
+    #     f.write("algorithm,dataset,auc,f1,avg_runtime\n")
+    #     for key, value in results.items():
+    #         f.write(
+    #             f"{key[0]},{key[1]},{round(value[0], 3)},{round(value[1], 3)},{round(value[2], 3)}\n"
+    #         )
 
-        # empty row between csv and hyperparamets
-        f.write("\n")
+    #     # empty row between csv and hyperparamets
+    #     f.write("\n")
 
-        f.write("General hyperparameters:\n")
-        f.write(f"\ttest split size: {test_size}\n")
-        f.write(f"\tval split size: {val_size}\n")
-        f.write(f"\tembedding size: {embedding_size}\n")
-        f.write(f"\tundirected graph: {undirected}\n")
-        f.write(f"\trepeats: {repeats}\n")
-        f.write(f"\tseed: {seed}\n")
+    #     f.write("General hyperparameters:\n")
+    #     f.write(f"\ttest split size: {test_size}\n")
+    #     f.write(f"\tval split size: {val_size}\n")
+    #     f.write(f"\tembedding size: {embedding_size}\n")
+    #     f.write(f"\tundirected graph: {undirected}\n")
+    #     f.write(f"\trepeats: {repeats}\n")
+    #     f.write(f"\tseed: {seed}\n")
 
-        f.write("\n")
+    #     f.write("\n")
 
-        for hyperpars_alg_name, hyperpars_pars in hyperpars.items():
-            f.write(f"{hyperpars_alg_name}:\n")
-            for hyperpars_par_name, hyperpars_par_value in hyperpars_pars.items():
-                f.write(f"\t{hyperpars_par_name}: {hyperpars_par_value}\n")
+    #     for hyperpars_alg_name, hyperpars_pars in hyperpars.items():
+    #         f.write(f"{hyperpars_alg_name}:\n")
+    #         for hyperpars_par_name, hyperpars_par_value in hyperpars_pars.items():
+    #             f.write(f"\t{hyperpars_par_name}: {hyperpars_par_value}\n")
 
 
 if __name__ == "__main__":
     main(
-        repeats=REPEATS,
+        repeats=100,
         undirected=UNDIRECTED,
         seed=SEED,
         test_size=TEST_SIZE,
         val_size=VAL_SIZE,
         embedding_size=EMBEDDING_SIZE,
-        datasets=[BITCOIN_ALPHA, BITCOIN_OTC, SLASHDOT, EPINIONS],
-        # datasets=[BITCOIN_ALPHA],
+        # datasets=[BITCOIN_ALPHA, BITCOIN_OTC, SLASHDOT, EPINIONS],
+        datasets=[BITCOIN_ALPHA],
         algorithms=[
-            (SSETrainer, "sse"),
+            # (SSETrainer, "sse"),
             (SGCNTrainer, "sgcn2"),
             (SGCNTrainer, "sgcn1"),
             (SGCNTrainer, "sgcn1p"),

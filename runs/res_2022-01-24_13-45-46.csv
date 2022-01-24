@@ -1,0 +1,74 @@
+algorithm,dataset,auc,f1,avg_runtime
+sse,soc-sign-bitcoinalpha.csv,0.769,0.886,0.796
+sgcn2,soc-sign-bitcoinalpha.csv,0.78,0.926,4.037
+sgcn1,soc-sign-bitcoinalpha.csv,0.8,0.924,3.424
+sgcn1p,soc-sign-bitcoinalpha.csv,0.782,0.926,3.629
+sse,soc-sign-bitcoinotc.csv,0.796,0.909,1.461
+sgcn2,soc-sign-bitcoinotc.csv,0.821,0.924,5.423
+sgcn1,soc-sign-bitcoinotc.csv,0.812,0.921,4.845
+sgcn1p,soc-sign-bitcoinotc.csv,0.814,0.921,4.926
+sse,soc-sign-Slashdot090221.txt,0.753,0.823,21.231
+sgcn2,soc-sign-Slashdot090221.txt,0.768,0.837,85.815
+sgcn1,soc-sign-Slashdot090221.txt,0.764,0.84,77.156
+sgcn1p,soc-sign-Slashdot090221.txt,0.767,0.837,82.705
+sse,soc-sign-epinions.txt,0.819,0.898,11.164
+sgcn2,soc-sign-epinions.txt,0.844,0.913,89.017
+sgcn1,soc-sign-epinions.txt,0.841,0.909,80.686
+sgcn1p,soc-sign-epinions.txt,0.844,0.912,86.249
+
+General hyperparameters:
+	test split size: 0.2
+	val split size: 0.1
+	embedding size: 64
+	undirected graph: False
+	repeats: 3
+	seed: 1337
+
+sgcn2:
+	in_features: 64
+	out_features: 64
+	num_layers: 2
+	lamb: 5
+	num_epochs: 200
+	num_batches: None
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	ablation_version: sgcn2
+	activation_fn: <built-in method tanh of type object at 0x7f253cccfee0>
+	val_interval: 5
+	early_stopping_patience: 50
+	loss_version: torch-geometric
+sgcn1:
+	in_features: 64
+	out_features: 64
+	num_layers: 1
+	lamb: 5
+	num_epochs: 200
+	num_batches: None
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	ablation_version: sgcn1
+	activation_fn: <built-in method tanh of type object at 0x7f253cccfee0>
+	val_interval: 5
+	early_stopping_patience: 50
+	loss_version: torch-geometric
+sgcn1p:
+	in_features: 64
+	out_features: 64
+	num_layers: 2
+	lamb: 5
+	num_epochs: 200
+	num_batches: None
+	xent_weights: [1, 1, 1]
+	learning_rate: 0.01
+	weight_decay: 1e-05
+	ablation_version: sgcn1p
+	activation_fn: <built-in method tanh of type object at 0x7f253cccfee0>
+	val_interval: 5
+	early_stopping_patience: 50
+	loss_version: torch-geometric
+sse:
+	embedding_size_true: 128
+	embedding_size_used: 64
