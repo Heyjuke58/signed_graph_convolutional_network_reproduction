@@ -60,6 +60,7 @@ class SGCNTrainer(Trainer):
             ablation_version=ablation_version,
         ).to(DEV)
 
+        self.val_nodes = self.get_val_nodes()
         self.val_interval = val_interval
         self.early_stopping_patience = early_stopping_patience
 
@@ -98,6 +99,21 @@ class SGCNTrainer(Trainer):
             self.train_pos_edge_index, self.train_neg_edge_index, self.num_nodes
         ).to(DEV)
 
+    def get_val_nodes(self) -> List[int]:
+        val_nodes = set()
+        for edge in self.val_pos_edge_index.T.cpu():
+            x = edge[0].item()
+            y = edge[1].item()
+            val_nodes.add(x)
+            val_nodes.add(y)
+        for edge in self.val_neg_edge_index.T.cpu():
+            x = edge[0].item()
+            y = edge[1].item()
+            val_nodes.add(x)
+            val_nodes.add(y)
+
+        return list(val_nodes)
+
     @staticmethod
     def get_adj_list(edge_index) -> Dict[int, set]:
         adj_list = defaultdict(set)
@@ -115,6 +131,7 @@ class SGCNTrainer(Trainer):
         best_score = 0
 
         train_losses = []
+        val_losses = []
         val_aucs = []
         val_f1s = []
 
@@ -151,9 +168,10 @@ class SGCNTrainer(Trainer):
 
                 # validation
                 if epoch % self.val_interval == 0:
-                    embedding, val_auc, val_f1 = self.validate()
+                    embedding, val_auc, val_f1, val_loss = self.validate()
                     val_aucs.append(val_auc)
                     val_f1s.append(val_f1)
+                    val_losses.append(val_loss)
                     score = val_auc + val_f1
                     if best_score < score:
                         best_embedding = embedding
@@ -178,9 +196,10 @@ class SGCNTrainer(Trainer):
                 train_losses.append(loss.item())
 
                 if (epoch + 1) % self.val_interval == 0:
-                    embedding, val_auc, val_f1 = self.validate()
+                    embedding, val_auc, val_f1, val_loss = self.validate()
                     val_aucs.append(val_auc)
                     val_f1s.append(val_f1)
+                    val_losses.append(val_loss)
                     score = val_auc + val_f1
                     if best_score < score:
                         best_embedding = embedding
@@ -193,20 +212,21 @@ class SGCNTrainer(Trainer):
 
         # plot the learning curves
         if plot:
-            x_axis = range(len(train_losses))
+            x_axis1 = range(len(train_losses))
+            x_axis2 = np.arange(len(val_aucs)) * self.val_interval
             fig, axs = plt.subplots(1, 2)
-            axs[0].plot(x_axis, train_losses, label="Training Loss")
+            axs[0].plot(x_axis1, train_losses, label="Training Loss")
+            axs[0].plot(x_axis2, val_losses, label="Validation Loss")
             axs[0].set_title("Learning Curve")
             axs[0].legend()
             axs[0].set_xlabel("Epoch")
             axs[0].set_ylabel("Loss")
             axs[0].grid(True)
 
-            x_axis = np.arange(len(val_aucs)) * self.val_interval
-            axs[1].plot(x_axis, val_aucs, label="Validation AUC")
-            axs[1].plot(x_axis, val_f1s, label="Validation F1")
+            axs[1].plot(x_axis2, val_aucs, label="Validation AUC")
+            axs[1].plot(x_axis2, val_f1s, label="Validation F1")
             axs[1].plot(
-                x_axis, [x + y for x, y in zip(val_aucs, val_f1s)], label="Validation F1 + AUC"
+                x_axis2, [x + y for x, y in zip(val_aucs, val_f1s)], label="Validation F1 + AUC"
             )
             axs[1].grid(True)
             axs[1].set_title("Validation Performance")
@@ -218,15 +238,31 @@ class SGCNTrainer(Trainer):
 
         return best_embedding
 
-    def validate(self) -> Tuple[Tensor, float, float]:
+    def validate(self) -> Tuple[Tensor, float, float, float]:
         embedding = self.sgcn(self.X, self.train_pos_edge_index, self.train_neg_edge_index)
+        if self.loss_version == "theirs":
+            val_loss = self.sgcn.their_loss(
+                self.val_nodes,
+                self.adj_lists_pos,
+                self.adj_lists_neg,
+                self.num_nodes,
+                embedding,
+                self.train_pos_edge_index,
+                self.train_neg_edge_index,
+            )
+        elif self.loss_version == "torch-geometric":
+            val_loss = self.sgcn.loss(
+                embedding,
+                self.val_pos_edge_index,
+                self.val_neg_edge_index,
+            )
         auc, f1 = self.sgcn.test(
             embedding,
             self.val_pos_edge_index,
             self.val_neg_edge_index,
         )
 
-        return embedding, auc, f1
+        return embedding, auc, f1, val_loss.item()
 
     def get_num_parameters(self) -> int:
         return np.sum(p.numel() for p in self.sgcn.parameters() if p.requires_grad)
