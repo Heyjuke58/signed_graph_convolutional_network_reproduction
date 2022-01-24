@@ -191,8 +191,8 @@ def main(
                 np.average(runtimes),
             )
             with open(Path("runs_dist") / "res_dist.csv", "a") as f:
-                f.write(f"{algorithm},auc,{','.join(aucs)}\n")
-                f.write(f"{algorithm},f1,{','.join(f1s)}\n")
+                f.write(f"{algorithm},auc,{','.join([str(auc) for auc in aucs])}\n")
+                f.write(f"{algorithm},f1,{','.join([str(f1) for f1 in f1s])}\n")
 
     # with open(Path("runs") / f"res_{get_timestamp()}.csv", "x") as f:
     #     f.write("algorithm,dataset,auc,f1,avg_runtime\n")
